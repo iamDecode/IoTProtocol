@@ -1,0 +1,179 @@
+{
+    "swagger": "2.0",
+    "host": "your.coap.server",
+    "basePath": "/api",
+    "schemes": [ "coap" ],
+    "info": {
+        "version": "1.0",
+        "title": "2IMN20 Practical API",
+        "description": ""
+    },
+    "tags": [{
+        "name": "Manager",
+        "description": "Calls at the server side"
+    }],
+    "paths": {
+        "/spot": {
+            "get": {
+                "tags": [ "Manager" ],
+                "summary": "Get a list of free parking spots",
+                "description": "Get a list of free parking spots",
+                "parameters": [
+                    {
+                        "name": "state",
+                        "description": "State of the parking spot.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string",
+                        "enum": [ "free", "reserved", "occupied" ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "title": "freeParkingSpots",
+                            "type": "array",
+                            "items": {
+                                "title": "",
+                                "type": "object",
+                                "properties": {
+                                    "spotId": { "type": "number" },
+                                    "state": { "type": "string", "enum": ["free", "reserved", "occupied"] },
+                                    "reservation": {
+                                        "description": "Only shows when parking spot is reserved or occupied.",
+                                        "type": "object",
+                                        "properties": {
+                                            "reservationId": { "type": "string", "description": "Id of the reservation" },
+                                            "time": { "type": "number", "description": "Until what time the spot is reserved (unix timestamp)." },
+                                            "vehicleId": { "type": "string", "description": "Id of the vehicle that either reserved or occupies the spot."}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+		"/occupation": {
+			"post": {
+				"tags": [ "Manager" ],
+                "summary": "Occupy a spot",
+				"description": "Occupy a spot",
+				"parameters": [
+					{
+                        "name": "spotId",
+                        "description": "Id of the spot to occupy",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+					}
+				],
+				"responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "title": "status",
+                            "type": "object",
+                            "properties": {
+                                "tariff": {"type": "number", "description": "parking cost per second"}
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Parking spot is not free."
+                    }
+                }
+			}
+		},
+		"/free": {
+			"post": {
+				"tags": [ "Manager" ],
+                "summary": "Free up the spot the car is currently on",
+				"description": "Free up the spot the car is currently on",
+				"responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "title": "status",
+                            "type": "object",
+                            "properties": {
+                                "Billing": {"type": "String", "description": "The bill"}
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Parking spot already free."
+                    }
+                }
+			}
+		},
+        "/reservation": {
+            "get": {
+                "tags": [ "Manager" ],
+                "summary": "Get reservation info",
+                "description": "Get reservation info",
+                "parameters": [
+                    {
+                        "name": "reservationId",
+                        "description": "Id of the reservation",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "title": "reservationInfo",
+                            "type": "object",
+                            "properties": {
+                                "reservationId": { "type": "string", "description": "Id of the reservation" },
+                                "time": { "type": "number", "description": "Until what time the spot is reserved (unix timestamp)." },
+                                "vehicleId": { "type": "string", "description": "Id of the vehicle that either reserved or occupies the spot."}
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [ "Manager" ],
+                "summary": "Make a reservation for a spot",
+                "description": "Make a reservation for a spot",
+                "parameters": [
+                    {
+                        "name": "spotId",
+                        "description": "Id of the spot to reserve",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "time",
+                        "description": "Until when the spot should be reserved (unix timestamp).",
+                        "in": "formData",
+                        "required": true,
+                        "type": "number"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "title": "status",
+                            "type": "object",
+                            "properties": {
+                                "reservationId": {"type": "string", "description": "Id of the reservation."}
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Parking spot already reserved"
+                    }
+                }
+            }
+        }
+    }
+}
